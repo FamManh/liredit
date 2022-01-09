@@ -52,7 +52,6 @@ export class PostResolver {
     const post = em.findOne(Post, { id });
     if (!post) return null;
     await em.nativeDelete(Post, { id });
-
     return post;
   }
 }

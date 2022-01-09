@@ -9,7 +9,8 @@
     "dev2": "nodemon --exec ts-node src/index.ts",
     "start": "node dist/index.js",
     "start2": "ts-node src/index.ts",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "create:migration": "mikro-orm migration:create"
   },
   "keywords": [],
   "author": "",
@@ -35,8 +36,12 @@
   },
   "dependencies": {
     "apollo-server-express": "^3.6.1",
+    "argon2": "^0.28.3",
+    "connect-redis": "^6.0.0",
     "express": "^4.17.2",
+    "express-session": "^1.17.2",
     "graphql": "^15.3.0",
+    "redis": "v3",
     "reflect-metadata": "^0.1.13",
     "type-graphql": "^1.1.1"
   }
