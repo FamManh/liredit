@@ -9,20 +9,40 @@ import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolvers } from "./resolvers/user";
 
+import redis from "redis";
+import session from "express-session";
+import connectRedis from "connect-redis";
+import { MyContext } from "./types";
+
 const main = async () => {
   const orm = await MikroORM.init(mikroOrmConfig);
   orm.getMigrator().up();
 
-  // const post = await orm.em.create(Post, { title: "My first post" });
-  // await orm.em.persistAndFlush(post);
-  // console.log("--------------sql 2 ----------");
-  // await orm.em.nativeInsert(Post, { title: "My second post" });
-
-  // console.log(post);
-  // const posts = await orm.em.find(Post, {});
-  // console.log(posts);
-
   const app = express();
+
+  const RedisStore = connectRedis(session);
+  const redisClient = redis.createClient();
+
+  app.use(
+    session({
+      name: "qid",
+      store: new RedisStore({
+        client: redisClient,
+        disableTouch: true,
+        disableTTL: true,
+      }),
+      cookie: {
+        maxAge: 1000 * 60 * 60 * 24 * 365, // 1 years
+        httpOnly: true,
+        sameSite: "lax", // csrf
+        secure: __prod__, // cookie only work in https
+      },
+      saveUninitialized: false,
+      secret: "liredit-secret",
+      resave: false,
+    })
+  );
+
   let apolloServer = null;
   const startServer = async () => {
     apolloServer = new ApolloServer({
@@ -30,8 +50,10 @@ const main = async () => {
         resolvers: [HelloResolver, PostResolver, UserResolvers],
         validate: false,
       }),
-      context: () => ({
+      context: ({ req, res }): MyContext => ({
         em: orm.em,
+        req,
+        res,
       }),
     });
     await apolloServer.start();
